@@ -5,7 +5,7 @@ name = ""
 job = ""
 level = 0
 xp = 0
-levelCap = 500
+levelCap = 50
 damage = 0
 floor = 0
 
@@ -20,7 +20,7 @@ texts = {
 monTypes = ("Aggressive", "Defensive", "Cautious")
 class Monster:
     global monTypes, texts
-    def __init__(self, name, level, health, type):
+    def __init__(self, name, level, health, type, xp):
         self.name = name
         self.level = level
         self.health = health
@@ -50,8 +50,6 @@ def characterMaking():
         num = input("number : ")
     job = classes[int(num)-1]
 
-
-
 def showText(title):
     global texts
     titles = texts.keys()
@@ -62,7 +60,6 @@ def showText(title):
             found = True
     if not found:
         print("title not found")
-
 
 def basePage(title):
     global name, level, xp, texts
@@ -78,11 +75,14 @@ def basePage(title):
     #item choosing options
     print(texts["sep"])
 
+def playerAction():
+    global health,
+
 def fightPhase(num):
     global Monster, texts
     #initialize monster
     if(num == 0):
-        goblin = Monster("Goblin", 1, 20, 0)
+        goblin = Monster("Goblin", 1, 20, 0, 30)
         goblin.showStats()
         showText(goblin.name)
     #fight cycle
