@@ -5,11 +5,7 @@ level = 0
 xp = 0
 levelCap = 500
 
-classes = {
-    "1" == "knight"
-    "2" == "mage"
-    "3" == "archer"
-}
+classes = ("Knight", "Mage", "Archer")
 
 ins0 = input("Would you like to start? y/n: ")
 
@@ -17,14 +13,14 @@ def characterMaking():
     global name, job, classes
     while name == "":
         name = input("What would you like to name your character? : ")
-    num = "0"
+    num = " "
     while num != "1" and num != "2" and num != "3":
         print("Which job would you like?")
         print("1 knight")
         print("2 mage")
         print("3 archer")
         num = input("number : ")
-    job = classes[num]
+    job = classes[int(num)-1]
 
 
 
