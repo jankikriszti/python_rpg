@@ -1,12 +1,15 @@
 #character infos
-from doctest import debug
+from contextlib import nullcontext
 
-name = ""
+name = "Hero"
 job = ""
-level = 0
+level = 1
 xp = 0
 levelCap = 50
 damage = 0
+maxHp = 50
+Hp = 50
+
 floor = 0
 
 classes = ("Knight", "Mage", "Archer")
@@ -20,11 +23,14 @@ texts = {
 monTypes = ("Aggressive", "Defensive", "Cautious")
 class Monster:
     global monTypes, texts
-    def __init__(self, name, level, health, type, xp):
+    def __init__(self, name, level, health, maxH, type, Dam, xp):
         self.name = name
         self.level = level
         self.health = health
+        self.maxH = maxH
         self.type = type
+        self.Dam = Dam
+        self.xp = xp
     def takeDamage(self, damage):
         self.health -= damage
     def healSelf(self, heal):
@@ -35,10 +41,17 @@ class Monster:
         print("HP: " + str(self.health))
         print("Level:", str(self.level))
         print("")
-
+    def fightAction(self):
+        if(self.type == "Aggressive"):
+            if(self.health >= maxHp * 0.3 or self.health < maxHp * 0.1):
+                return 1 #attack
+            else:
+                return 2 #defense
+        else:
+            return 0
 
 def characterMaking():
-    global name, job, classes
+    global name, job, classes, damage
     while name == "":
         name = input("What would you like to name your character? : ")
     num = " "
@@ -49,6 +62,7 @@ def characterMaking():
         print("3 archer")
         num = input("number : ")
     job = classes[int(num)-1]
+    damage = 10
 
 def showText(title):
     global texts
@@ -76,22 +90,64 @@ def basePage(title):
     print(texts["sep"])
 
 def playerAction():
-    global health,
+    print("")
+    if(job == "Knight"):
+        # attack, special attack, defend
+        print("1 Stab")
+        print("2 Swing")
+        print("3 Parry")
+    if(job == "Mage"):
+        # attack, special attack, heal
+        print("1 Wind slash")
+        print("2 Fireball")
+        print("3 Healing orb")
+    if(job == "Archer"):
+        # attack, special attack, evade
+        print("1 Shoot an arrow")
+        print("2 Poison darts")
+        print("3 Roll away")
+    num = 0
+    while num != 1 and num != 2 and num != 3:
+        num = int(input("Choose an action! 1/2/3 : "))
+    return num
+
+
+def fightStatus(mName, mHp, mMax, mStatus):
+    global name, Hp, maxHp
+    print(texts["sep"])
+    print(name)
+    print(str(Hp), "HP/" + str(maxHp), "HP")
+    print("-------")
+    print(mName)
+    print(str(mHp), "HP/" + str(mMax) ,"HP")
+    print("------------------")
 
 def fightPhase(num):
-    global Monster, texts
+    global Monster, texts, damage, Hp, name
     #initialize monster
+    monster = nullcontext
+
     if(num == 0):
-        goblin = Monster("Goblin", 1, 20, 0, 30)
-        goblin.showStats()
-        showText(goblin.name)
+        monster = Monster("Goblin", 1, 50, 50,  monTypes[0], 10, 30) #name, level, health, maxH, type, Dam, xp
+        monster.showStats()
+        showText(monster.name)
+
     #fight cycle
-
-
+    print("What are you going to do?")
+    attackNum = playerAction()
+    attackMon = monster.fightAction()
+    #result
+    if(attackMon == attackNum):
+        #attacked each other
+        Hp -= monster.Dam
+        monster.health -= damage
+        print(monster.name, "choose to attack.")
+        print(name , "and" , monster.name, "have taken damage!")
+        print("")
+        fightStatus(monster.name, monster.health, monster.maxH, "")
 
 
 #testing
-fightPhase(floor)
 
 #game starts here
 ins0 = input("Would you like to start? y/n: ")
