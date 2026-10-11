@@ -135,6 +135,18 @@ def playerAction():
     print("")
     return int(num)
 
+def monsterInit(num):
+    global Monster
+    monster = nullcontext
+    match num:
+        # monster(name, level, hp, maxH, type, Dam, xp, state)
+        case 0:
+            monster = Monster("Goblin", 1, 50, 50, monTypes[0], 10, 60, states[0])
+        case 1:
+            monster = Monster("Orc", 2, 100, 100, monTypes[0], 30, 100, states[0])
+        case _:
+            return
+    return monster
 
 def fightStatus(mName, mHp, mMax, mState):
     global playerName, playerHp, playerMaxHp
@@ -153,22 +165,17 @@ def fightStatus(mName, mHp, mMax, mState):
 def fightPhase(num):
     global Monster, texts, playerDam, playerHp, playerName, playerMaxHp, healRate, states, floor, playerXp
     #initialize monster
-    monster = nullcontext
-    abnormalstateCounter = 0
-    if(num == 0):
-        monster = Monster("Goblin", 1, 50, 50, monTypes[0], 10, 60, states[0]) #name, level, health, maxH, type, Dam, xp, state
-        monster.showStats()
-        showText(monster.playerName)
-    if(num == 1):
-        monster = Monster("Orc", 2, 100, 100, monTypes[0], 30, 100, states[0])  # name, level, health, maxH, type, Dam, xp, state
-        monster.showStats()
-        showText(monster.playerName)
-
-    if(monster == nullcontext):
+    monster = monsterInit(floor)
+    if monster == nullcontext:
+        print("monster init not working!")
         return
+    monster.showStats()
+    showText(monster.playerName)
+    #reset counters
+    abnormalstateCounter = 0
 
     #fight cycle
-    while monster.health > 0 or playerHp > 0:
+    while monster.hp > 0 or playerHp > 0:
         print("What are you going to do?")
         playerAttack = playerAction()
         monAttack = monster.fightAction()
@@ -176,7 +183,7 @@ def fightPhase(num):
         # result
         if (abnormalstateCounter != 0):
             abnormalDamage = int(playerDam / 3)
-            monster.health -= abnormalDamage
+            monster.hp -= abnormalDamage
             abnormalstateCounter -= 1
             if(abnormalstateCounter == 0):
                 monster.state = states[0]
@@ -185,7 +192,7 @@ def fightPhase(num):
         match combos:
             case (1,1):
                 playerHp -= monster.Dam
-                monster.health -= playerDam
+                monster.hp -= playerDam
                 print("You got", monster.Dam, "damage!")
                 if (job == "Knight"):
                     # stab
@@ -199,7 +206,7 @@ def fightPhase(num):
             case (1,2):
                 # parry
                 parryDam = int(playerDam / 2)
-                monster.health -= parryDam
+                monster.hp -= parryDam
                 print("You parried the attack! ", monster.name, "got", parryDam, "damage!")
                 if (job == "Mage"):
                     # healing orb
@@ -218,21 +225,21 @@ def fightPhase(num):
                     # swing, Bleeding effect
                     monster.state = states[3]
                     abnormalstateCounter = 2
-                    monster.health -= playerDam
+                    monster.hp -= playerDam
                     print("You did a big swing with your sword!", monster.name, "got", playerDam, "damage!")
                     print(monster.name, "is bleeding!")
                 if (job == "Mage"):
                     # fireball OnFire effect
                     monster.state = states[1]
                     abnormalstateCounter = 2
-                    monster.health -= playerDam
+                    monster.hp -= playerDam
                     print("You threw a Fire Ball!", monster.name, "got", playerDam, "damage!")
                     print(monster.name, "is on fire!")
                 if (job == "Archer"):
                     # poison darts Posioned effect
                     monster.state = states[2]
                     abnormalstateCounter = 2
-                    monster.health -= playerDam
+                    monster.hp -= playerDam
                     print("You threw poisoned darts!", monster.name, "got", playerDam, "damage!")
                     print(monster.name, "is poisoned!")
             case (2,1):
@@ -260,16 +267,18 @@ def fightPhase(num):
                 print("your attack doesn't work!")
             case _:
                 print("combos are not recognizable!")
-        fightStatus(monster.name, monster.health, monster.maxH, monster.state)
+        fightStatus(monster.name, monster.hp, monster.maxH, monster.state)
         input("Continue? /enter")
     if(playerHp <= 0):
         print("You died!")
         print("Game Over!")
         return
-    if(monster.health <= 0):
+    if(monster.hp <= 0):
         print("Congratulations! You killed the monster!")
         playerXp += monster.xp
         floor += 1
+
+
 
 
 #testing
