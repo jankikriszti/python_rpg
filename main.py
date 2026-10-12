@@ -13,6 +13,7 @@ healRate = 0.25 #healingOrb
 levelCap = 50
 levelWeight = 1.2
 floor = 0
+turnCount = 0
 
 states = ("Normal", "OnFire", "Poisoned", "Bleeding")
 jobs = ("Knight", "Mage", "Archer")
@@ -25,7 +26,7 @@ texts = {
 }
 monTypes = ("Aggressive", "Defensive", "Cautious")
 class Monster:
-    global monTypes, texts
+    global monTypes, texts, turnCount
     def __init__(self, name, level, hp, maxHp, type, dam, xp, state, abnormalcounter):
         self.name = name
         self.level = level
@@ -51,10 +52,18 @@ class Monster:
         self.abnormalcounter = counter
     def fightAction(self):
         if(self.type == "Aggressive"):
-            if(self.hp >= playerMaxHp * 0.3 or self.hp < playerMaxHp * 0.1):
+            if(self.hp >= playerMaxHp * 0.3):
                 return 1 #attack
             else:
-                return 2 #defense
+                # 1 and 2
+                temp = str(bin(turnCount))
+                if(temp[len(temp)-1] == "1"):
+                    #odd number
+                    return 1
+                else:
+                    #even number
+                    return 2
+
         else:
             return 0
 
@@ -62,11 +71,11 @@ class Monster:
 def levelUp():
     global playerXp, levelCap, levelWeight, playerLevel, playerHp, playerDam, texts
     playerXp -= levelCap
-    levelCap = playerLevel * 50 * levelWeight
+    levelCap = int(playerLevel * 50 * levelWeight)
     playerLevel += 1
     playerHp += 1.5
     #damage ? weapon?
-    playerDam *= levelWeight
+    playerDam = int(playerDam * levelWeight)
     print(texts["sep"])
     print("You leveled up!")
     print(texts["sep"])
@@ -169,10 +178,13 @@ def fightResult(combos, monster):
                 # arrow
                 print("You shot an arrow!", monster.name, "got", playerDam, "damage!")
         case (1, 2):
-            # parry
-            parryDam = int(playerDam / 2)
-            monster.hp -= parryDam
-            print("You parried the attack! ", monster.name, "got", parryDam, "damage!")
+            print(monster.name , "is attacking!")
+            if(job == "Knight"):
+                # parry
+                parryDam = int(playerDam / 2)
+                monster.hp -= parryDam
+                print("You parried the attack! ", monster.name, "got", parryDam, "damage!")
+
             if (job == "Mage"):
                 # healing orb
                 playerHp -= monster.dam
@@ -207,7 +219,7 @@ def fightResult(combos, monster):
         case (2, 1):
             # monster defend
             print(monster.name, "is defending!")
-            print("your attack doesn't work!")
+            print("Your attack doesn't work!")
         case (2, 2):
             # monster and player defend
             print("You both defended!")
@@ -216,7 +228,6 @@ def fightResult(combos, monster):
                 print("What are you parrying?")
             if (job == "Mage"):
                 # healing orb
-                playerHp -= monster.Dam
                 heal = playerMaxHp * healRate
                 playerHp += heal
                 print("You healed yourself! You got ", heal, "HP!")
@@ -226,13 +237,15 @@ def fightResult(combos, monster):
         case (2, 3):
             # monster defend
             print(monster.name, "is defending!")
-            print("your attack doesn't work!")
+            print("Your attack doesn't work!")
         case _:
             print("combos are not recognizable!")
 
+
 def fightStatus(monster):
-    global playerName, playerHp, playerMaxHp
+    global playerName, playerHp, playerMaxHp, turnCount
     print(texts["sep"])
+    print("Turn", turnCount)
     print(playerName)
     print(str(playerHp), "HP/" + str(playerMaxHp), "HP")
     print("-------")
@@ -256,7 +269,7 @@ def monsterAbnormDam(monster):
 
 
 def fightPhase(num):
-    global texts, playerDam, playerHp, playerName, playerMaxHp, healRate, states, floor, playerXp, job
+    global texts, playerDam, playerHp, playerName, playerMaxHp, healRate, states, floor, playerXp, job, turnCount
     #initialize monster
     monster = monsterInit(floor)
     if monster == nullcontext:
@@ -268,6 +281,7 @@ def fightPhase(num):
     monster.abnormalcounter = 0
 
     #fight cycle
+    turnCount = 1
     while monster.hp > 0 or playerHp > 0:
         print("What are you going to do?")
         #player choose attack
@@ -281,18 +295,18 @@ def fightPhase(num):
         monsterAbnormDam(monster)
 
         fightResult(combos, monster)
-
+        if (playerHp <= 0):
+            print("You died!")
+            print("Game Over!")
+            return
+        if (monster.hp <= 0):
+            print("Congratulations! You killed the monster!")
+            playerXp += monster.xp
+            floor += 1
+            return
         fightStatus(monster)
-
-        input("Continue? /enter")
-    if(playerHp <= 0):
-        print("You died!")
-        print("Game Over!")
-        return
-    if(monster.hp <= 0):
-        print("Congratulations! You killed the monster!")
-        playerXp += monster.xp
-        floor += 1
+        turnCount += 1
+        input("/enter")
 
 
 
