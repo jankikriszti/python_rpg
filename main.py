@@ -282,7 +282,7 @@ def fightPhase(num):
 
     #fight cycle
     turnCount = 1
-    while monster.hp > 0 or playerHp > 0:
+    while monster.hp > 0 and playerHp > 0:
         print("What are you going to do?")
         #player choose attack
         playerAttack = playerAction()
