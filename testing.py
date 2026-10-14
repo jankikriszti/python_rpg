@@ -101,6 +101,12 @@ def fightState():
 
 def fightResult(combos):
     global playerJob, playerHp, playerMaxHp, healRate, states, statistics, turnCount, monster
+    
+    if (monster.abnormalcounter != 0):
+        abnormalDamage = int(playerDam / 3)
+        monster.hp -= abnormalDamage
+        monster.abnormalcounter -= 1
+
     res = "res base"
     match combos:
         case (1, 1):
@@ -169,7 +175,7 @@ def fightResult(combos):
 def fightCycle():
     global Monster, monster, playerXp, turnCount, statistics
     #fight cycle
-    while monHp > 0 and playerHp > 0:
+    while monster.hp > 0 and playerHp > 0:
         turnCount += 1
         #playeraction
         pNum = playerAction()
@@ -178,6 +184,7 @@ def fightCycle():
         mNum = monster.fightAction()
         #print(mNum)
         #result
+
         fightResult((mNum,pNum))
     if (playerHp <= 0):
         print("You died!")
