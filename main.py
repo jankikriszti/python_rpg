@@ -2,7 +2,7 @@
 from contextlib import nullcontext
 
 playerName = "Hero"
-job = ""
+playerJob = ""
 playerLevel = 1
 playerXp = 0
 playerDam = 0
@@ -82,7 +82,7 @@ def levelUp():
 
 
 def characterMaking():
-    global playerName, job, jobs, playerDam
+    global playerName, playerJob, jobs, playerDam
     while playerName == "":
         playerName = input("What would you like to name your character? : ")
     num = " "
@@ -111,7 +111,7 @@ def basePage(title):
     #character info
     print(texts["sep"])
     print(playerName)
-    print("Job: " + job)
+    print("Job: " + playerJob)
     print("Level:", playerLevel)
     print("XP:", str(playerXp) + "/" + str(levelCap))
     print("")
@@ -123,7 +123,7 @@ def basePage(title):
 
 def playerAction():
     print("")
-    match job:
+    match playerJob:
         case "Knight":
             # attack, defend, special attack
             print("1 Stab")
@@ -162,7 +162,7 @@ def monsterInit(num):
     return monster
 
 def fightResult(combos, monster):
-    global job, playerHp, playerMaxHp, healRate, states
+    global playerJob, playerHp, playerMaxHp, healRate, states
     match combos:
         case (1, 1):
             playerHp -= monster.dam
@@ -269,7 +269,7 @@ def monsterAbnormDam(monster):
 
 
 def fightPhase(num):
-    global texts, playerDam, playerHp, playerName, playerMaxHp, healRate, states, floor, playerXp, job, turnCount
+    global texts, playerDam, playerHp, playerName, playerMaxHp, healRate, states, floor, playerXp, playerJob, turnCount
     #initialize monster
     monster = monsterInit(floor)
     if monster == nullcontext:
