@@ -12,13 +12,7 @@ levelCap = 50
 levelWeight = 1.2
 turnCount = 0
 
-monName = "Goblin"
-monHp = 50
-monMaxHp = 50
-monDam = 10
-monXp = 50
-
-monTypes = ("Aggressive")
+monTypes = ("Goblin", "Orc")
 states = ("N", "F", "P", "B")
 
 statistics = []
@@ -29,7 +23,7 @@ def charStats(maxHp, dam, job):
     playerDam = dam
     playerJob = job
 class Monster:
-    global monTypes, texts, turnCount
+    global texts, turnCount
     def __init__(self, name, level, maxHp, type, dam, xp, state, abnormalcounter):
         self.name = name
         self.level = level
@@ -54,23 +48,34 @@ class Monster:
         self.state = state
         self.abnormalcounter = counter
     def fightAction(self):
-        if (self.hp >= self.maxHp * 0.3):
-            return 1  # attack
-        else:
-            # 1 and 2
-            temp = str(bin(turnCount))
-            if (temp[len(temp) - 1] == "1"):
-                # odd number
-                return 1
-            else:
-                # even number
-                return 2
+        #print("fightAction start")
+        match self.type:
+            case "Goblin":
+                #print("type Goblin")
+                default = [1,1,2] #attack, attack, defend
+                if(self.hp > self.maxHp * 0.5):
+                    default = [1,3,2,1]
+                else:
+                    default = [2,1,2]
+                return getAction(default, turnCount)
+            case _:
+                print("mon type not found!")
 
+
+def getAction(sequence, turn):
+    length = len(sequence)
+    res = turn / length
+    float = res - int(res)
+    if(float == 0):
+        return sequence[int(length-1)]
+    leftover = float / (1 / length)
+    return sequence[int(leftover - 1)]
 
 
 
 charStats(100, 10, "Knight")
-monster = Monster(monName, 1, monMaxHp, monTypes[0], monDam, monXp, states[0], 0)
+#name, level, maxHp, type, dam, xp, state, abnormalcounter
+monster = Monster("Goblin", 1, 100, monTypes[0], 10, 50, states[0], 0)
 
 def playerAction():
     global defendCount, playerHp, playerMaxHp, monster
@@ -166,6 +171,45 @@ def fightResult(combos):
         case (2, 3):
             # monster defend, player spec attack
             res = f"Turn {turnCount} : Mon def, Player atk 0, eff none"
+        case (3,1):
+            #monster fast attack, double?
+            playerHp -= monster.dam *2
+            monster.hp -= playerDam
+            res = f"Turn {turnCount} : Mon atk twice {monster.dam}* 2 , Player atk {playerDam}"
+        case (3,2):
+            # mon  fast attack , player defends
+            if (playerJob == "Knight"):
+                # parry
+                parryDam = int(playerDam / 2)
+                monster.hp -= parryDam
+                res = f"Turn {turnCount} : Mon atk twice 0 , Player par {parryDam}"
+            if (playerJob == "Mage"):
+                # healing orb
+                playerHp -= monster.dam * 2
+                heal = playerMaxHp * healRate
+                playerHp += heal
+                res = f"Turn {turnCount} : Mon atk twice {monster.dam}* 2 , Player heal {heal}"
+            if (playerJob == "Archer"):
+                # evade
+                res = f"Turn {turnCount} : Mon atk twice 0, Player def"
+        case (3,3):
+            # monster fast attack, player spec attack
+            playerHp -= monster.dam *2
+            if (playerJob == "Knight"):
+                # swing, Bleeding effect
+                monster.stateUpdate(states[3], 2)
+                monster.hp -= playerDam
+                res = f"Turn {turnCount} : Mon atk twice {monster.dam}* 2 , Player swi {playerDam} + eff {states[3]}"
+            if (playerJob == "Mage"):
+                # fireball OnFire effect
+                monster.stateUpdate(states[1], 2)
+                monster.hp -= playerDam
+                res = f"Turn {turnCount} : Mon atk twice {monster.dam}* 2 , Player fir {playerDam} + eff {states[1]}"
+            if (playerJob == "Archer"):
+                # poison darts Posioned effect
+                monster.stateUpdate(states[2], 2)
+                monster.hp -= playerDam
+                res = f"Turn {turnCount} : Mon atk twice {monster.dam}* 2 , Player poi {playerDam} + eff {states[2]}"
         case _:
             res = ("combos are not recognizable!")
     statistics.append(res)
@@ -201,5 +245,6 @@ def fightCycle():
 
 #test starts here
 fightCycle()
+
 
 
