@@ -24,13 +24,13 @@ texts = {
     "Goblin" : "You see a small monster upon opening the gate."
 
 }
-monTypes = ("Aggressive", "Defensive", "Cautious")
+monTypes = ("Goblin", "Orc", "Skeleton")
 class Monster:
-    global monTypes, texts, turnCount
-    def __init__(self, name, level, hp, maxHp, type, dam, xp, state, abnormalcounter):
+    global texts, turnCount
+    def __init__(self, name, level, maxHp, type, dam, xp, state, abnormalcounter):
         self.name = name
         self.level = level
-        self.hp = hp
+        self.hp = maxHp
         self.maxHp = maxHp
         self.type = type
         self.dam = dam
@@ -51,21 +51,18 @@ class Monster:
         self.state = state
         self.abnormalcounter = counter
     def fightAction(self):
-        if(self.type == "Aggressive"):
-            if(self.hp >= playerMaxHp * 0.3):
-                return 1 #attack
-            else:
-                # 1 and 2
-                temp = str(bin(turnCount))
-                if(temp[len(temp)-1] == "1"):
-                    #odd number
-                    return 1
+        # print("fightAction start")
+        match self.type:
+            case "Goblin":
+                # print("type Goblin")
+                default = [1, 1, 2]  # attack, attack, defend
+                if (self.hp > self.maxHp * 0.5):
+                    default = [1, 3, 2, 1]
                 else:
-                    #even number
-                    return 2
-
-        else:
-            return 0
+                    default = [2, 1, 2]
+                return getAction(default, turnCount)
+            case _:
+                print("mon type not found!")
 
 
 def levelUp():
@@ -92,7 +89,7 @@ def characterMaking():
         print("2 mage")
         print("3 archer")
         num = input("number : ")
-    job = jobs[int(num) - 1]
+    playerJob = jobs[int(num) - 1]
     playerDam = 10
 
 def showText(title):
@@ -120,6 +117,14 @@ def basePage(title):
     #item choosing options
     print(texts["sep"])
 
+def getAction(sequence, turn):
+    length = len(sequence)
+    res = turn / length
+    float = res - int(res)
+    if(float == 0):
+        return sequence[int(length-1)]
+    leftover = float / (1 / length)
+    return sequence[int(leftover - 1)]
 
 def playerAction():
     print("")
@@ -152,11 +157,11 @@ def monsterInit(num):
     global Monster
     monster = nullcontext
     match num:
-        # monster(name, level, hp, maxH, type, Dam, xp, state, abnormalcounter)
+        # monster(name, level, maxH, type, Dam, xp, state, abnormalcounter)
         case 0:
-            monster = Monster("Goblin", 1, 50, 50, monTypes[0], 10, 60, states[0], 0)
+            monster = Monster("Goblin", 1, 50, monTypes[0], 10, 60, states[0], 0)
         case 1:
-            monster = Monster("Orc", 2, 100, 100, monTypes[0], 30, 100, states[0], 0)
+            monster = Monster("Orc", 2, 100, monTypes[1], 30, 100, states[0], 0)
         case _:
             return
     return monster
@@ -168,49 +173,49 @@ def fightResult(combos, monster):
             playerHp -= monster.dam
             monster.hp -= playerDam
             print("You got", monster.dam, "damage!")
-            if (job == "Knight"):
+            if (playerJob == "Knight"):
                 # stab
                 print("You stabbed with your sword! ", monster.name, "got", playerDam, "damage!")
-            if (job == "Mage"):
+            if (playerJob == "Mage"):
                 # wind slash
                 print("You used Wind Slash! ", monster.name, "got", playerDam, "damage!")
-            if (job == "Archer"):
+            if (playerJob == "Archer"):
                 # arrow
                 print("You shot an arrow!", monster.name, "got", playerDam, "damage!")
         case (1, 2):
             print(monster.name , "is attacking!")
-            if(job == "Knight"):
+            if(playerJob == "Knight"):
                 # parry
                 parryDam = int(playerDam / 2)
                 monster.hp -= parryDam
                 print("You parried the attack! ", monster.name, "got", parryDam, "damage!")
 
-            if (job == "Mage"):
+            if (playerJob == "Mage"):
                 # healing orb
                 playerHp -= monster.dam
                 heal = playerMaxHp * healRate
                 playerHp += heal
                 print("You got", monster.dam, "damage!")
                 print("You healed yourself! You got ", heal, "HP!")
-            if (job == "Archer"):
+            if (playerJob == "Archer"):
                 # evade
                 print("You evaded the attack!")
         case (1, 3):
             playerHp -= monster.dam
             print("You got", monster.dam, "damage!")
-            if (job == "Knight"):
+            if (playerJob == "Knight"):
                 # swing, Bleeding effect
                 monster.stateUpdate(states[3], 2)
                 monster.hp -= playerDam
                 print("You did a big swing with your sword!", monster.name, "got", playerDam, "damage!")
                 print(monster.name, "is bleeding!")
-            if (job == "Mage"):
+            if (playerJob == "Mage"):
                 # fireball OnFire effect
                 monster.stateUpdate(states[1], 2)
                 monster.hp -= playerDam
                 print("You threw a Fire Ball!", monster.name, "got", playerDam, "damage!")
                 print(monster.name, "is on fire!")
-            if (job == "Archer"):
+            if (playerJob == "Archer"):
                 # poison darts Posioned effect
                 monster.stateUpdate(states[2], 2)
                 monster.hp -= playerDam
@@ -223,21 +228,77 @@ def fightResult(combos, monster):
         case (2, 2):
             # monster and player defend
             print("You both defended!")
-            if (job == "Knight"):
+            if (playerJob == "Knight"):
                 # parry
                 print("What are you parrying?")
-            if (job == "Mage"):
+            if (playerJob == "Mage"):
                 # healing orb
                 heal = playerMaxHp * healRate
                 playerHp += heal
                 print("You healed yourself! You got ", heal, "HP!")
-            if (job == "Archer"):
+            if (playerJob == "Archer"):
                 # evade
                 print("You evaded the non-existent attack! Good job!")
         case (2, 3):
             # monster defend
             print(monster.name, "is defending!")
             print("Your attack doesn't work!")
+        case (3,1):
+            #monster fast attack, double?
+            playerHp -= monster.dam *2
+            monster.hp -= playerDam
+            print(monster.name, "is in frenzy!")
+            print("You got", monster.dam * 2, "damage!")
+            if (playerJob == "Knight"):
+                # stab
+                print("You stabbed with your sword! ", monster.name, "got", playerDam, "damage!")
+            if (playerJob == "Mage"):
+                # wind slash
+                print("You used Wind Slash! ", monster.name, "got", playerDam, "damage!")
+            if (playerJob == "Archer"):
+                # arrow
+                print("You shot an arrow!", monster.name, "got", playerDam, "damage!")
+        case (3,2):
+            # mon  fast attack , player defends
+            print(monster.name, "is in frenzy!")
+            if (playerJob == "Knight"):
+                # parry
+                parryDam = int(playerDam / 2)
+                monster.hp -= parryDam
+                print("You parried the attack! ", monster.name, "got", parryDam, "damage!")
+            if (playerJob == "Mage"):
+                # healing orb
+                playerHp -= monster.dam *2
+                heal = playerMaxHp * healRate
+                playerHp += heal
+                print("You got", monster.dam *2, "damage!")
+                print("You healed yourself! You got ", heal, "HP!")
+            if (playerJob == "Archer"):
+                # evade
+                print("You evaded the attack!")
+        case (3,3):
+            # monster fast attack, player spec attack
+            print(monster.name, "is in frenzy!")
+            playerHp -= monster.dam *2
+            print("You got", monster.dam*2, "damage!")
+            if (playerJob == "Knight"):
+                # swing, Bleeding effect
+                monster.stateUpdate(states[3], 2)
+                monster.hp -= playerDam
+                print("You did a big swing with your sword!", monster.name, "got", playerDam, "damage!")
+                print(monster.name, "is bleeding!")
+            if (playerJob == "Mage"):
+                # fireball OnFire effect
+                monster.stateUpdate(states[1], 2)
+                monster.hp -= playerDam
+                print("You threw a Fire Ball!", monster.name, "got", playerDam, "damage!")
+                print(monster.name, "is on fire!")
+            if (playerJob == "Archer"):
+                # poison darts Posioned effect
+                monster.stateUpdate(states[2], 2)
+                monster.hp -= playerDam
+                print("You threw poisoned darts!", monster.name, "got", playerDam, "damage!")
+                print(monster.name, "is poisoned!")
         case _:
             print("combos are not recognizable!")
 
