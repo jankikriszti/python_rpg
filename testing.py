@@ -13,8 +13,8 @@ levelWeight = 1.2
 turnCount = 0
 
 monName = "Goblin"
-monHp = 50
-monMaxHp = 50
+monHp = 100
+monMaxHp = 100
 monDam = 10
 monXp = 50
 
@@ -79,6 +79,8 @@ def playerAction():
             return 3
         else:
             return 1
+    elif playerHp < playerMaxHp * 0.1:
+        return 2
     else:
         if(defendCount <= 1):
             defendCount += 1
@@ -101,7 +103,7 @@ def fightState():
 
 def fightResult(combos):
     global playerJob, playerHp, playerMaxHp, healRate, states, statistics, turnCount, monster
-    
+
     if (monster.abnormalcounter != 0):
         abnormalDamage = int(playerDam / 3)
         monster.hp -= abnormalDamage
